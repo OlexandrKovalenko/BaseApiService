@@ -6,19 +6,27 @@ use App\System\Core\ResultCodes;
 use App\System\Http\RequestBundle;
 use App\System\Http\ResponseBundle;
 use App\System\Traits\LoggableTrait;
+use App\System\Util\GuidHelper;
+use App\System\Util\Log;
 use App\System\Util\Validator\RequestValidator;
 use App\System\Util\Validator\Validator;
+use Random\RandomException;
 
 class BaseFacade
 {
     use LoggableTrait;
+    protected string $globalSessionId;
 
     public Validator $validator;
     protected RequestValidator $requestValidator;
 
+    /**
+     * @throws RandomException
+     */
     function __construct() {
         $this->validator = new Validator();
         $this->requestValidator = new RequestValidator();
+        $this->globalSessionId = GuidHelper::getOrCreateGlobalSessionId();
     }
 
     /**

@@ -11,4 +11,6 @@ interface UserRepositoryInterface
     public function update(User $user): User;
 
     public function findById(int $id): ?User;
+
+    public function findByPhone(string $userPhone): ?User;
 }

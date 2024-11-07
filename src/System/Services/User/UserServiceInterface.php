@@ -8,5 +8,7 @@ interface UserServiceInterface
 {
     public function getUserById(int $userId): ?User;
 
+    public function getUserByPhone(int $userPhone): ?User;
+
     public function createUser(User $user): int;
 }

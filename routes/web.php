@@ -1,5 +1,6 @@
 <?php
 
+use App\System\Controllers\AuthController;
 use App\System\Core\Router;
 use App\System\Http\ResponseBundle;
 use App\System\Middleware\AuthMiddleware;
@@ -15,9 +16,13 @@ $router->get('', function() {
     ]);
 });
 
+$router->post('/login', [LoggingMiddleware::class, [AuthController::class, 'login']]);
+$router->post('/user/create', [LoggingMiddleware::class, [UserController::class, 'createUser']]);
+//$router->get('/userr', [LoggingMiddleware::class, [UserController::class, 'getUser']]);
+
 $router->group('/api', function ($router) {
     $router->get('/user', [LoggingMiddleware::class, AuthMiddleware::class, [UserController::class, 'getUser']]);
-    $router->post('/user/create', [LoggingMiddleware::class, AuthMiddleware::class, [UserController::class, 'createUser']]);
+
 });
 
 //$router->get('/user', [AuthMiddleware::class, [UserController::class, 'getUser']]);

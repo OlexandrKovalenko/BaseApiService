@@ -23,6 +23,11 @@ class ResponseBundle
         return $this;
     }
 
+    public function getStatusCode(): int
+    {
+        return $this->statusCode;
+    }
+
     public function setData(array $data): self
     {
         $this->data = $data;

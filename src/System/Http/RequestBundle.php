@@ -8,7 +8,7 @@ class RequestBundle
     private string $uri;
     private array $params = [];
     private array $headers = [];
-    private array $attributes = []; // для збереження додаткових даних, як-от user_id
+    private array $attributes = [];
 
     public function __construct(string $method, string $uri, array $params = [], array $headers = [])
     {

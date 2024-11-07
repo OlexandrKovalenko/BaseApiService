@@ -4,8 +4,10 @@ namespace App\System\Repositories\User;
 
 use App\System\Entity\User;
 use App\System\Repositories\BaseRepository;
+use App\System\Util\GuidHelper;
 use Exception;
 use PDO;
+use Random\RandomException;
 
 class UserRepository extends BaseRepository implements UserRepositoryInterface
 {
@@ -15,10 +17,15 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
      */
     public function store(User $user): int
     {
+        $guid = GuidHelper::createLocalSessionId();
         $user->beforeSave(); // Оновлюємо created_at та updated_at
 
         $query = 'INSERT INTO users (first_name, last_name, phone, email, password, note, last_login, created_at, updated_at) 
                   VALUES (:first_name, :last_name, :phone, :email, :password, :note, :last_login, :created_at, :updated_at)';
+
+        $this->logInfo($guid, (string)json_encode($query), [
+            'tags' => ['user', 'store', 'query'],
+        ]);
 
         $stmt = $this->db->prepare($query);
 
@@ -81,9 +88,42 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
      */
     public function findById(int $id): ?User
     {
+        $guid = GuidHelper::createLocalSessionId();
+
         $query = 'SELECT * FROM users WHERE id = :id';
+
+        $this->logInfo($guid, (string)json_encode($query), [
+            'tags' => ['user', 'findById', 'query'],
+        ]);
+
         $stmt = $this->db->prepare($query);
         $stmt->execute([':id' => $id]);
+
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user) {
+            return new User($user);
+        }
+
+        throw new Exception("No user found.");
+    }
+
+    /**
+     * @throws RandomException
+     * @throws Exception
+     */
+    public function findByPhone(string $userPhone): ?User
+    {
+        $guid = GuidHelper::createLocalSessionId();
+
+        $query = 'SELECT * FROM users WHERE phone = :phone';
+
+        $this->logInfo($guid, (string)json_encode($query), [
+            'tags' => ['user', 'findByPhone', 'query'],
+        ]);
+
+        $stmt = $this->db->prepare($query);
+        $stmt->execute([':phone' => $userPhone]);
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

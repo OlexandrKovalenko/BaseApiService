@@ -108,7 +108,8 @@ class Router
             if (preg_match($route['pattern'], $uri, $matches)) {
                 array_shift($matches);
                 $parameters = array_combine($route['parameters'], $matches);
-                $request = new RequestBundle($method, $uri, $parameters);
+                $headers = getallheaders();
+                $request = new RequestBundle($method, $uri, $parameters, $headers);
                 $this->handleAction($route['action'], $request);
                 return;
             }
@@ -126,6 +127,7 @@ class Router
             // Якщо це callable, одразу викликаємо його з request
             $response = call_user_func($action, $request);
         } elseif (is_array($action) && isset($action[0]) && is_array(end($action))) {
+
             // Якщо $action містить мідлвари та контролер
             $this->handleMiddleware($action, $request);
             return;
@@ -152,9 +154,9 @@ class Router
         $controllerAction = end($action); // Останній елемент — контролер та метод
 
         // Замикання для виклику контролера після мідлварів
-        $next = function ($request) use ($controllerAction) {
+        $next = function ($request, $response) use ($controllerAction) {
             list($controller, $method) = $controllerAction;
-            return $this->callControllerAction($controller, $method, $request);
+            return $this->callControllerAction($controller, $method, $request, $response);
         };
 
         // Запускаємо кожен мідлвар у зворотному порядку
@@ -166,14 +168,16 @@ class Router
             }
 
             $middlewareInstance = $this->container->make($middlewareClass);
-            $next = function ($request) use ($middlewareInstance, $next) {
-                return $middlewareInstance->handle($request, $next);
+
+            $next = function ($request, $response) use ($middlewareInstance, $next) {
+                return $middlewareInstance->handle($request, $response, $next);
             };
         }
 
         // Запускаємо ланцюг мідлварів і контролер
         //$next($request)->send();
-        $response = $next($request);
+        $response = $next($request, new ResponseBundle());
+
         foreach ($middlewares as $middlewareClass) {
             $middlewareInstance = $this->container->make($middlewareClass);
             if (method_exists($middlewareInstance, 'after')) {

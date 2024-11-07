@@ -2,7 +2,10 @@
 
 namespace App\System\Controllers;
 
+use App\System\Facades\Auth\AuthFacade;
+use App\System\Facades\Auth\AuthFacadeInterface;
 use App\System\Facades\User\UserFacade;
+use App\System\Facades\User\UserFacadeInterface;
 use App\System\Http\RequestBundle;
 use App\System\Http\ResponseBundle;
 use App\System\Util\GuidHelper;
@@ -13,10 +16,10 @@ class UserController extends BaseController
 {
 
     private UserFacade $userFacade;
-    public function __construct()
+    public function __construct(UserFacadeInterface $userFacade)
     {
         parent::__construct();
-        $this->userFacade = $this->get(UserFacade::class);
+        $this->userFacade = $userFacade;
     }
 
     /**
@@ -25,9 +28,8 @@ class UserController extends BaseController
     public function getUser(RequestBundle $request): ResponseBundle
     {
         $guid = GuidHelper::createLocalSessionId();
-        $this->logInfo($guid, (string)json_encode($request), [
-            'class' => __CLASS__,
-            'method' => __METHOD__,
+
+        $this->logInfo($guid, (string)json_encode($request->getBody()), [
             'tags' => ['user', 'request'],
         ]);
 
@@ -37,9 +39,7 @@ class UserController extends BaseController
             return $user;
         }
 
-        $this->logInfo($guid, (string)json_encode($user->jsonSerialize()), [
-            'class' => __CLASS__,
-            'method' => __METHOD__,
+        $this->logInfo($guid, (string)json_encode($request->getBody()), [
             'tags' => ['user', 'response'],
             'user_id' => $user->getId(),
             'email' => $user->getEmail(),
@@ -56,19 +56,22 @@ class UserController extends BaseController
     public function createUser(RequestBundle $request): ResponseBundle
     {
         $guid = GuidHelper::createLocalSessionId();
+        $this->logInfo($guid, (string)json_encode($request->getBody()), [
+            'tags' => ['user', 'create', 'response'],  // можна передавати тільки специфічні параметри
+        ]);
 
         $createUserResponse = $this->userFacade->createUser($request);
+
         if ($createUserResponse instanceof ResponseBundle) {
             return $createUserResponse;
         }
 
         $this->logInfo($guid, (string)json_encode($createUserResponse), [
-            'class' => __CLASS__,
-            'method' => __METHOD__,
-            'tags' => ['user', 'create', 'response'],
+            'tags' => ['user', 'create', 'response'],  // можна передавати тільки специфічні параметри
             'user_id' => $createUserResponse['user_id'],
         ]);
 
         return new ResponseBundle(201, $createUserResponse);
     }
+
 }

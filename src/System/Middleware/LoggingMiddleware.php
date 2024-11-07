@@ -2,6 +2,7 @@
 
 namespace App\System\Middleware;
 
+use App\System\Http\RequestBundle;
 use App\System\Http\ResponseBundle;
 use App\System\Traits\LoggableTrait;
 use App\System\Util\GuidHelper;
@@ -29,7 +30,7 @@ class LoggingMiddleware  implements MiddlewareInterface
     /**
      * @throws RandomException
      */
-    public function handle($request, $next): ResponseBundle
+    public function handle(RequestBundle $request, ResponseBundle $response, callable $next)
     {
         Log::init('Middleware');
         $guid = GuidHelper::createLocalSessionId();
@@ -39,13 +40,11 @@ class LoggingMiddleware  implements MiddlewareInterface
             'params' => $request->getParams(),
             'headers' => $request->getHeaders()];
 
-        $this->logInfo($guid, json_encode($message), [
-            'class' => __CLASS__,
-            'method' => __METHOD__,
-            'tags' => ['request', 'fetch']
+        $this->logInfo($guid, 'Request: ' . json_encode($message), [
+            'tags' => ['middleware', 'request'],
+            'data' => $request->getBody()
         ]);
-        // Пропускаємо запит до наступного обробника
-        return $next($request);
+        return $next($request, $response);
     }
 
     /**
@@ -53,13 +52,11 @@ class LoggingMiddleware  implements MiddlewareInterface
      */
     public function after(ResponseBundle $response): ResponseBundle
     {
-        Log::init('Middleware');
-        // Додаємо логування відповіді
         $guid = GuidHelper::createLocalSessionId();
+
         $this->logInfo($guid, 'Response: ' . json_encode($response->getData()), [
-            'class' => __CLASS__,
-            'method' => __METHOD__,
-            'tags' => ['response', 'after']
+            'tags' => ['middleware', 'response'],
+            'data' => $response->getData()
         ]);
 
         return $response;

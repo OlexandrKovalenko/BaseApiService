@@ -12,9 +12,7 @@ use App\System\Providers\ServiceProvider;
 use App\System\Traits\LoggableTrait;
 use App\System\Util\GuidHelper;
 use App\System\Util\Log;
-use App\System\Util\Validator\RequestValidator;
 use Exception;
-use Monolog\Logger;
 use Random\RandomException;
 
 abstract class BaseController

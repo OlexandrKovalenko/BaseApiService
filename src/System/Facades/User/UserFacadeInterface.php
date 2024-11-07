@@ -11,4 +11,6 @@ interface UserFacadeInterface
     public function createUser(RequestBundle $request): array|ResponseBundle;
 
     public function getUser(RequestBundle $request): User|ResponseBundle;
+
+    public function getUserByPhone(RequestBundle $request): User|ResponseBundle;
 }

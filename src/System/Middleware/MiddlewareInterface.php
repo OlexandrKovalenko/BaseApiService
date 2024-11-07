@@ -7,5 +7,5 @@ use App\System\Http\ResponseBundle;
 
 interface MiddlewareInterface
 {
-    public function handle(RequestBundle $request, callable $next): ResponseBundle;
+    public function handle(RequestBundle $request, ResponseBundle $response, callable $next);
 }
