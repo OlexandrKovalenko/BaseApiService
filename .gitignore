@@ -1,0 +1,10 @@
+/vendor/
+/node_modules/
+/.env
+*.log
+.idea/
+/*.lock
+/logs/
+/123/
+/dev/
+phinx.php
