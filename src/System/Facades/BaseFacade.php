@@ -8,13 +8,12 @@ use App\System\Http\ResponseBundle;
 use App\System\Traits\LoggableTrait;
 use App\System\Util\Validator\RequestValidator;
 use App\System\Util\Validator\Validator;
-use Exception;
 
 class BaseFacade
 {
     use LoggableTrait;
 
-    public $validator;
+    public Validator $validator;
     protected RequestValidator $requestValidator;
 
     function __construct() {

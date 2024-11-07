@@ -7,7 +7,7 @@ use App\System\Repositories\User\UserRepository;
 use App\System\Services\BaseService;
 use Exception;
 
-class UserService extends BaseService
+class UserService extends BaseService implements UserServiceInterface
 {
 
     private UserRepository $userRepository;

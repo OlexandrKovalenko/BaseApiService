@@ -8,7 +8,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Random\RandomException;
 
-class AuthService extends BaseService
+class AuthService extends BaseService implements AuthServiceInterface
 {
     private UserRepository $userRepo;
     private string $secret;

@@ -6,7 +6,7 @@ use App\System\Services\Auth\AuthService;
 use App\System\Http\RequestBundle;
 use App\System\Http\ResponseBundle;
 
-class AuthMiddleware
+class AuthMiddleware implements MiddlewareInterface
 {
     private AuthService $authService;
 

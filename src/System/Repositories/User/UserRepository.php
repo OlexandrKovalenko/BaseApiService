@@ -4,11 +4,10 @@ namespace App\System\Repositories\User;
 
 use App\System\Entity\User;
 use App\System\Repositories\BaseRepository;
-use DateTime;
 use Exception;
 use PDO;
 
-class UserRepository extends BaseRepository
+class UserRepository extends BaseRepository implements UserRepositoryInterface
 {
     // Метод для збереження нового користувача
     /**
@@ -38,11 +37,15 @@ class UserRepository extends BaseRepository
             return $this->db->lastInsertId(); // Повертаємо ID нового користувача
         }
 
-        throw new Exception("Не вдалося створити користувача."); // Викидаємо помилку, якщо вставка не вдалася
+        throw new Exception("Failed to create user."); // Викидаємо помилку, якщо вставка не вдалася
     }
 
     // Метод для оновлення користувача
-    public function update(User $user): void
+
+    /**
+     * @throws Exception
+     */
+    public function update(User $user): User
     {
         $user->beforeSave(); // Оновлюємо updated_at
 
@@ -52,7 +55,7 @@ class UserRepository extends BaseRepository
 
         $stmt = $this->db->prepare($query);
 
-        $stmt->execute([
+        $result = $stmt->execute([
             ':id' => $user->getId(),
             ':first_name' => $user->getFirstName(),
             ':last_name' => $user->getLastName(),
@@ -63,9 +66,19 @@ class UserRepository extends BaseRepository
             ':last_login' => $user->getLastLogin() ? $user->getLastLogin() : null,
             ':updated_at' => $user->getUpdatedAt()->format('Y-m-d H:i:s')
         ]);
+
+        if ($result) {
+            return $user;
+        }
+
+        throw new Exception("Failed to update user.");
     }
 
     // Метод для отримання користувача за ID
+
+    /**
+     * @throws Exception
+     */
     public function findById(int $id): ?User
     {
         $query = 'SELECT * FROM users WHERE id = :id';
@@ -78,6 +91,6 @@ class UserRepository extends BaseRepository
             return new User($user);
         }
 
-        return null;
+        throw new Exception("No user found.");
     }
 }

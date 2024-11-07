@@ -8,7 +8,7 @@ use App\System\Util\GuidHelper;
 use App\System\Util\Log;
 use Random\RandomException;
 
-class LoggingMiddleware
+class LoggingMiddleware  implements MiddlewareInterface
 {
     protected string $globalSessionId;
     use LoggableTrait;
@@ -29,7 +29,7 @@ class LoggingMiddleware
     /**
      * @throws RandomException
      */
-    public function handle($request, $next)
+    public function handle($request, $next): ResponseBundle
     {
         Log::init('Middleware');
         $guid = GuidHelper::createLocalSessionId();

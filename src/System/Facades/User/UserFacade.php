@@ -1,16 +1,17 @@
 <?php
-namespace App\System\Facades;
+namespace App\System\Facades\User;
 
 use App\System\Core\ResultCodes;
 use App\System\Entity\User;
 use App\System\Exception\UserNotFoundException;
+use App\System\Facades\BaseFacade;
 use App\System\Http\RequestBundle;
 use App\System\Http\ResponseBundle;
 use App\System\Services\User\UserService;
 use App\System\Util\DataFormatter;
 use Exception;
 
-class UserFacade extends BaseFacade
+class UserFacade extends BaseFacade implements UserFacadeInterface
 {
     private UserService $userService;
 

@@ -2,18 +2,24 @@
 
 namespace App\System\Providers;
 
-use App\System\Facades\UserFacade;
+use App\System\Container\Container;
+use App\System\Facades\User\UserFacade;
+use App\System\Facades\User\UserFacadeInterface;
 use App\System\Middleware\AuthMiddleware;
 use App\System\Middleware\LoggingMiddleware;
+use App\System\Middleware\MiddlewareInterface;
 use App\System\Repositories\User\UserRepository;
+use App\System\Repositories\User\UserRepositoryInterface;
 use App\System\Services\Auth\AuthService;
+use App\System\Services\Auth\AuthServiceInterface;
 use App\System\Services\User\UserService;
-use App\System\Container\Container;
+use App\System\Services\User\UserServiceInterface;
+use Exception;
 
 class ServiceProvider
 {
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function initialize(Container $container): void
     {
@@ -34,7 +40,7 @@ class ServiceProvider
     // Регістрація репозиторіїв
     private static function registerRepositories(Container $container): void
     {
-        $container->bind(UserRepository::class, function () {
+        $container->bind(UserRepositoryInterface::class, function () {
             return new UserRepository();
         });
     }
@@ -42,24 +48,24 @@ class ServiceProvider
     // Регістрація сервісів
     private static function registerServices(Container $container): void
     {
-        $container->bind(UserService::class, function () use ($container) {
-            return new UserService($container->make(UserRepository::class));
+        $container->bind(UserServiceInterface::class, function () use ($container) {
+            return new UserService($container->make(UserRepositoryInterface::class));
         });
 
-        $container->bind(AuthService::class, function () use ($container) {
-            return new AuthService($container->make(UserRepository::class));
+        $container->bind(AuthServiceInterface::class, function () use ($container) {
+            return new AuthService($container->make(UserRepositoryInterface::class));
         });
     }
 
     // Налаштування фасадів
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private static function configureFacades(Container $container): void
     {
-        $container->bind(UserFacade::class, function () use ($container) {
-            $userService = $container->make(UserService::class);
+        $container->bind(UserFacadeInterface::class, function () use ($container) {
+            $userService = $container->make(UserServiceInterface::class);
             return new UserFacade($userService);
         });
     }
@@ -67,10 +73,11 @@ class ServiceProvider
     // Регістрація Middleware
     private static function registerMiddleware(Container $container): void
     {
-        $container->bind(AuthMiddleware::class, function () use ($container) {
-            return new AuthMiddleware($container->make(AuthService::class));
+        $container->bind(MiddlewareInterface::class, function () use ($container) {
+            return new AuthMiddleware($container->make(AuthServiceInterface::class));
         });
-        $container->bind(LoggingMiddleware::class, function () {
+
+        $container->bind(MiddlewareInterface::class, function () {
             return new LoggingMiddleware();
         });
     }

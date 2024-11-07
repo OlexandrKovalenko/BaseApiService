@@ -2,16 +2,10 @@
 
 namespace App\System\Controllers;
 
-use App\System\Core\ResultCodes;
-use App\System\Entity\User;
-use App\System\Exception\UserNotFoundException;
-use App\System\Exception\ValidationException;
-use App\System\Facades\UserFacade;
+use App\System\Facades\User\UserFacade;
 use App\System\Http\RequestBundle;
 use App\System\Http\ResponseBundle;
 use App\System\Util\GuidHelper;
-use App\System\Util\Validator\RequestValidator;
-use App\System\Util\Validator\Validator;
 use Exception;
 use Random\RandomException;
 
