@@ -2,6 +2,13 @@
 
 namespace App\System\Core;
 
+/**
+ * Class ResultCodes
+ *
+ * @package App\System\Core
+ * @author maslo
+ * @since 08.11.2024
+ */
 class ResultCodes
 {
 // Коди успіху

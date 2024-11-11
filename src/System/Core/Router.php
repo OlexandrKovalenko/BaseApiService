@@ -7,16 +7,40 @@ use App\System\Http\ResponseBundle;
 use App\System\Container\Container;
 use Exception;
 
+/**
+ * Class Router
+ *
+ * @package App\System\Core
+ * @author maslo
+ * @since 08.11.2024
+ */
 class Router
 {
+    /**
+     * @var array $routes
+     */
     private array $routes = [];
+    /**
+     * @var Container $container
+     */
     private Container $container;
 
+    /**
+     * @param Container $container
+     */
     public function __construct(Container $container)
     {
         $this->container = $container;
     }
 
+    /**
+     * addRoute
+     *
+     * @param string $method
+     * @param string $uri
+     * @param $action
+     * @return void
+     */
     public function addRoute(string $method, string $uri, $action): void
     {
         $uri = trim($uri, '/');
@@ -27,26 +51,61 @@ class Router
         ];
     }
 
+    /**
+     * get
+     *
+     * @param string $uri
+     * @param $action
+     * @return void
+     */
     public function get(string $uri, $action): void
     {
         $this->addRoute('GET', $uri, $action);
     }
 
+    /**
+     * post
+     *
+     * @param string $uri
+     * @param $action
+     * @return void
+     */
     public function post(string $uri, $action): void
     {
         $this->addRoute('POST', $uri, $action);
     }
 
+    /**
+     * put
+     *
+     * @param string $uri
+     * @param $action
+     * @return void
+     */
     public function put(string $uri, $action): void
     {
         $this->addRoute('PUT', $uri, $action);
     }
 
+    /**
+     * delete
+     *
+     * @param string $uri
+     * @param $action
+     * @return void
+     */
     public function delete(string $uri, $action): void
     {
         $this->addRoute('DELETE', $uri, $action);
     }
 
+    /**
+     * group
+     *
+     * @param string $prefix
+     * @param callable $callback
+     * @return void
+     */
     public function group(string $prefix, callable $callback): void
     {
         $originalRoutes = $this->routes;
@@ -63,29 +122,35 @@ class Router
         $this->routes = array_merge($originalRoutes, $this->routes);
     }
 
+    /**
+     * convertUriToPattern
+     *
+     * @param string $uri
+     * @return string
+     */
     protected function convertUriToPattern(string $uri): string
     {
         $uri = str_replace(['^', '$'], '', $uri);
-        // Обрізаємо початкові та кінцеві слеші
         $uri = trim($uri, '/');
 
-        // Якщо URI порожній, повертаємо патерн для кореневого URI
         if ($uri === '') {
-            return '/^$/'; // Для кореневого URI
+            return '/^$/';
         }
 
-        // Замінюємо параметри в патерні (якщо є)
         $pattern = preg_replace('/\{[^}]+\}/', '([^\/]+)', $uri);
 
-        // Якщо у $uri вже є регулярні символи, їх не потрібно екранізувати
-        // Перевіряємо, чи містить $pattern вже символи, які можуть бути неправильно оброблені
         $pattern = str_replace('/', '\/', $pattern);
 
         return '/^' . $pattern . '$/';
     }
 
 
-
+    /**
+     * extractUriParameters
+     *
+     * @param string $uri
+     * @return array
+     */
     private function extractUriParameters(string $uri): array
     {
         preg_match_all('/\{([^}]+)\}/', $uri, $matches);
@@ -93,6 +158,11 @@ class Router
     }
 
     /**
+     * dispatch
+     *
+     * @param string $method
+     * @param string $uri
+     * @return void
      * @throws Exception
      */
     public function dispatch(string $method, string $uri): void
@@ -107,9 +177,9 @@ class Router
         foreach ($this->routes[$method] as $route) {
             if (preg_match($route['pattern'], $uri, $matches)) {
                 array_shift($matches);
-                $parameters = array_combine($route['parameters'], $matches);
-                $headers = getallheaders();
-                $request = new RequestBundle($method, $uri, $parameters, $headers);
+                //$parameters = array_combine($route['parameters'], $matches);
+                //$headers = getallheaders();
+                $request = new RequestBundle($uri);
                 $this->handleAction($route['action'], $request);
                 return;
             }
@@ -119,6 +189,11 @@ class Router
     }
 
     /**
+     * handleAction
+     *
+     * @param $action
+     * @param RequestBundle $request
+     * @return void
      * @throws Exception
      */
     private function handleAction($action, RequestBundle $request): void
@@ -146,6 +221,11 @@ class Router
     }
 
     /**
+     * handleMiddleware
+     *
+     * @param array $action
+     * @param RequestBundle $request
+     * @return void
      * @throws Exception
      */
     private function handleMiddleware(array $action, RequestBundle $request): void
@@ -174,8 +254,6 @@ class Router
             };
         }
 
-        // Запускаємо ланцюг мідлварів і контролер
-        //$next($request)->send();
         $response = $next($request, new ResponseBundle());
 
         foreach ($middlewares as $middlewareClass) {
@@ -190,6 +268,12 @@ class Router
 
 
     /**
+     * callControllerAction
+     *
+     * @param string $controller
+     * @param string $method
+     * @param RequestBundle $request
+     * @return ResponseBundle
      * @throws Exception
      */
     private function callControllerAction(string $controller, string $method, RequestBundle $request): ResponseBundle
@@ -213,6 +297,11 @@ class Router
         return new ResponseBundle(500, ['error' => 'Internal Server Error']);
     }
 
+    /**
+     * respondNotFound
+     *
+     * @return void
+     */
     private function respondNotFound(): void
     {
         http_response_code(404);

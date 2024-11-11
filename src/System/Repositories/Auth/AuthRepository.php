@@ -9,14 +9,23 @@ use Exception;
 use PDO;
 use Random\RandomException;
 
+/**
+ * Class AuthRepository
+ *
+ * @package App\System\Repositories\Auth
+ * @author maslo
+ * @since 11.11.2024
+ */
 class AuthRepository extends BaseRepository implements AuthRepositoryInterface
 {
     /**
+     * storeRefreshToken
+     *
      * @param int $userId
-     * @param string $refreshToken
-     * @param int $expiresAt
+     * @param $refreshToken
+     * @param $expiresAt
      * @return void
-     * @throws Exception
+     * @throws RandomException
      */
     public function storeRefreshToken(int $userId, $refreshToken, $expiresAt): void
     {
@@ -45,8 +54,10 @@ class AuthRepository extends BaseRepository implements AuthRepositoryInterface
     }
 
     /**
-     * @param int $userId
-     * @param string $refreshToken
+     * getRefreshToken
+     *
+     * @param $userId
+     * @param $refreshToken
      * @return array|null
      * @throws RandomException
      */
@@ -68,7 +79,6 @@ class AuthRepository extends BaseRepository implements AuthRepositoryInterface
         ]);
 
         $tokenData = $stmt->fetch(PDO::FETCH_ASSOC);
-
         return $tokenData ? $tokenData : null;
     }
 }

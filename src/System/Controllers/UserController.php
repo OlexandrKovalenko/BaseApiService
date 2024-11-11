@@ -1,9 +1,8 @@
 <?php
+declare(strict_types=1);
 
 namespace App\System\Controllers;
 
-use App\System\Facades\Auth\AuthFacade;
-use App\System\Facades\Auth\AuthFacadeInterface;
 use App\System\Facades\User\UserFacade;
 use App\System\Facades\User\UserFacadeInterface;
 use App\System\Http\RequestBundle;
@@ -12,10 +11,26 @@ use App\System\Util\GuidHelper;
 use Exception;
 use Random\RandomException;
 
+
+/**
+ * Class UserController
+ *
+ * @package App\System\Controllers
+ * @author maslo
+ * @since 08.11.2024
+ */
 class UserController extends BaseController
 {
 
+    /**
+     * @var UserFacade $userFacade
+     */
     private UserFacade $userFacade;
+
+    /**
+     * @param UserFacadeInterface $userFacade
+     * @throws RandomException
+     */
     public function __construct(UserFacadeInterface $userFacade)
     {
         parent::__construct();
@@ -33,20 +48,22 @@ class UserController extends BaseController
             'tags' => ['user', 'request'],
         ]);
 
-        $user = $this->userFacade->getUser($request);
+        try {
+            $user = $this->userFacade->getUser($request);
 
-        if ($user instanceof ResponseBundle) {
-            return $user;
+            // Логування, якщо користувача знайдено
+            $this->logInfo($guid, (string)json_encode($user->jsonSerialize()), [
+                'tags' => ['user', 'response'],
+                'user_id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'phone' => $user->getPhone(),
+            ]);
+
+            return new ResponseBundle(200, $user->jsonSerialize());
+
+        } catch (Exception $e) {
+            return $this->handleException($e);
         }
-
-        $this->logInfo($guid, (string)json_encode($request->getBody()), [
-            'tags' => ['user', 'response'],
-            'user_id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'phone' => $user->getPhone(),
-        ]);
-
-        return new ResponseBundle(200, $user->jsonSerialize());
     }
 
     /**

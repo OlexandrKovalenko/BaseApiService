@@ -12,8 +12,15 @@ Log::init('app');
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
 $dotenv->load();
 
+define('APP_NAME', getenv('APP_NAME'));
+define('APP_VERSION', getenv('APP_VERSION'));
+define('APP_AUTHOR', getenv('APP_AUTHOR'));
+
 $container = new Container();
-ServiceProvider::initialize($container);
+try {
+    ServiceProvider::initialize($container);
+} catch (Exception $e) {
+}
 
 $router = new Router($container);
 global $router;

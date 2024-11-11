@@ -14,13 +14,32 @@ use App\System\Services\User\UserServiceInterface;
 use App\System\Util\DataFormatter;
 use App\System\Util\GuidHelper;
 use Exception;
+use Random\RandomException;
 
+/**
+ * Class AuthFacade
+ *
+ * @package App\System\Facades\Auth
+ * @author maslo
+ * @since 11.11.2024
+ */
 class AuthFacade extends BaseFacade implements AuthFacadeInterface
 {
 
+    /**
+     * @var AuthServiceInterface $authService
+     */
     private AuthServiceInterface $authService;
+    /**
+     * @var UserServiceInterface $userService
+     */
     private UserServiceInterface $userService;
 
+    /**
+     * @param AuthServiceInterface $authService
+     * @param UserServiceInterface $userService
+     * @throws RandomException
+     */
     public function __construct(AuthServiceInterface $authService, UserServiceInterface $userService)
     {
         parent::__construct();
@@ -29,7 +48,11 @@ class AuthFacade extends BaseFacade implements AuthFacadeInterface
     }
 
     /**
-     * @throws Exception
+     * login
+     *
+     * @param RequestBundle $request
+     * @return array|ResponseBundle
+     * @throws RandomException
      */
     public function login(RequestBundle $request): array|ResponseBundle
     {
@@ -50,7 +73,6 @@ class AuthFacade extends BaseFacade implements AuthFacadeInterface
                 'password' => 'notEmpty|string|min:8|max:255',
             ];
             if (!$this->validator->validate(['phone' => $userPhone, 'password' => $password], $rules)) {
-                var_dump($this->validator->getErrors());
                 return new ResponseBundle(400, ['error' => $this->validator->getErrors()], ResultCodes::ERROR_INTERNAL_SERVER);
             }
 
@@ -73,16 +95,54 @@ class AuthFacade extends BaseFacade implements AuthFacadeInterface
     }
 
     /**
-     * @throws Exception
+     * refreshToken
+     *
+     * @param RequestBundle $request
+     * @return string|ResponseBundle
+     * @throws RandomException
      */
-    public function refreshToken(int $userId, string $refreshToken): array
+    public function refreshToken(RequestBundle $request): string|ResponseBundle
     {
-        $storedToken = $this->authService->validateRefreshToken($userId, $refreshToken);
+        $guid = GuidHelper::createLocalSessionId();
+        $refreshToken = $request->getBody()['refreshToken'] ?? null;
+        $userPhone = $request->getBody()['phone'] ?? null;
 
-        if (!$storedToken) {
-            throw new Exception("Invalid refresh token");
+        try {
+            $requiredFields = ['phone', 'refreshToken'];
+            $validationResponse = $this->validateRequiredFields($request, $requiredFields);
+            if ($validationResponse instanceof ResponseBundle) {
+                return $validationResponse;
+            }
+
+            $user = $this->userService->getUserByPhone(DataFormatter::formatPhone($userPhone));
+
+            if (!$user) {
+                $this->logWarning($guid, "User with phone {$userPhone} not found.", [
+                    'tags' => ['user', 'refreshToken', 'not_found']
+                ]);
+                return new ResponseBundle(404, ['error' => "User with phone number {$userPhone} not found."], ResultCodes::ERROR_NOT_FOUND);
+            }
+
+            $storedToken = $this->authService->validateRefreshToken($user->getId(), $refreshToken);
+            if (!$storedToken) {
+                return new ResponseBundle(500, ['error' => 'Invalid refresh token'], ResultCodes::ERROR_NOT_FOUND);
+            }
+
+            $this->logInfo($guid, (string)json_encode(true), [
+                'tags' => ['user', 'getUser', 'response'],
+                'user_id' => $user->getId(),
+                'phone' => $user->getPhone(),
+                'result' => ResultCodes::SUCCESS,
+            ]);
+
+            return $this->authService->generateAccessToken($user->getId());
+
+        } catch (Exception $e) {
+            $this->logError($guid, (string)json_encode($e->getMessage()), [
+                'tags' => ['user', 'getUser', 'response'],
+                'result' => ResultCodes::ERROR_INTERNAL_SERVER,
+            ]);
+            return new ResponseBundle(500, ['error' => $e->getMessage()], ResultCodes::ERROR_INTERNAL_SERVER);
         }
-
-        return $this->authService->generateTokens($userId);
     }
 }

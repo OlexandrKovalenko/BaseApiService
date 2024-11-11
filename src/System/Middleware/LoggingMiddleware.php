@@ -59,6 +59,7 @@ class LoggingMiddleware  implements MiddlewareInterface
             'data' => $response->getData()
         ]);
 
+        GuidHelper::resetGlobalSessionId();
         return $response;
     }
 }

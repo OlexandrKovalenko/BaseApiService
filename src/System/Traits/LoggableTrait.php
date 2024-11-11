@@ -8,10 +8,28 @@ trait LoggableTrait
 {
     protected string $globalSessionId;
 
+    protected function logDebug(string $guid, string $message, array $context = []): void
+    {
+        $fullContext = $this->getStandardContext($context);
+        $this->log('debug', $guid, $message, $fullContext);
+    }
+
     protected function logInfo(string $guid, string $message, array $context = []): void
     {
         $fullContext = $this->getStandardContext($context);
         $this->log('info', $guid, $message, $fullContext);
+    }
+
+    protected function logNotice(string $guid, string $message, array $context = []): void
+    {
+        $fullContext = $this->getStandardContext($context);
+        $this->log('notice', $guid, $message, $fullContext);
+    }
+
+    protected function logWarning(string $guid, string $message, array $context = []): void
+    {
+        $fullContext = $this->getStandardContext($context);
+        $this->log('warning', $guid, $message, $fullContext);
     }
 
     protected function logError(string $guid, string $message, array $context = []): void
@@ -20,10 +38,22 @@ trait LoggableTrait
         $this->log('error', $guid, $message, $fullContext);
     }
 
-    protected function logDebug(string $guid, string $message, array $context = []): void
+    protected function logCritical(string $guid, string $message, array $context = []): void
     {
         $fullContext = $this->getStandardContext($context);
-        $this->log('debug', $guid, $message, $fullContext);
+        $this->log('critical', $guid, $message, $fullContext);
+    }
+
+    protected function logAlert(string $guid, string $message, array $context = []): void
+    {
+        $fullContext = $this->getStandardContext($context);
+        $this->log('alert', $guid, $message, $fullContext);
+    }
+
+    protected function logEmergency(string $guid, string $message, array $context = []): void
+    {
+        $fullContext = $this->getStandardContext($context);
+        $this->log('emergency', $guid, $message, $fullContext);
     }
 
     private function log(string $level, string $guid, string $message, array $context = []): void

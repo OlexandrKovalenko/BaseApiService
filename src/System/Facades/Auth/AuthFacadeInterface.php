@@ -14,5 +14,5 @@ interface AuthFacadeInterface
 
     public function login(RequestBundle $request): array|ResponseBundle;
 
-    public function refreshToken(int $userId, string $refreshToken): array;
+    public function refreshToken(RequestBundle $request): string|ResponseBundle;
 }

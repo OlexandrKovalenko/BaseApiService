@@ -5,13 +5,25 @@ namespace App\System\Core;
 use Dotenv\Dotenv;
 use PDO;
 
+/**
+ * Class DbConnection
+ *
+ * @package App\System\Core
+ * @author maslo
+ * @since 08.11.2024
+ */
 class DbConnection
 {
-    private $connection;
+    /**
+     * @var PDO $connection
+     */
+    private PDO $connection;
 
+    /**
+     *
+     */
     public function __construct()
     {
-        // Завантаження конфігурацій з .env файлу
         $dotenv = Dotenv::createImmutable(__DIR__ . '/../../../');
         $dotenv->load();
 
@@ -30,6 +42,11 @@ class DbConnection
         }
     }
 
+    /**
+     * getConnection
+     *
+     * @return PDO
+     */
     public function getConnection(): PDO
     {
         return $this->connection;

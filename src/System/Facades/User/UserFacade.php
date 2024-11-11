@@ -3,6 +3,7 @@ namespace App\System\Facades\User;
 
 use App\System\Core\ResultCodes;
 use App\System\Entity\User;
+use App\System\Exception\InternalServerErrorException;
 use App\System\Exception\UserNotFoundException;
 use App\System\Facades\BaseFacade;
 use App\System\Http\RequestBundle;
@@ -67,7 +68,7 @@ class UserFacade extends BaseFacade implements UserFacadeInterface
             return ['status' => 'success', 'user_id' => $user];
         } catch (Exception $e) {
             $this->logError($guid, (string)json_encode($e->getMessage()), [
-                'tags' => ['user', 'createUser', 'response'],  // можна передавати тільки специфічні параметри
+                'tags' => ['user', 'createUser', 'response'],
                 'result' => ResultCodes::ERROR_INTERNAL_SERVER,
             ]);
             return new ResponseBundle(500, ['error' => $e->getMessage()], ResultCodes::ERROR_INTERNAL_SERVER);
@@ -76,32 +77,34 @@ class UserFacade extends BaseFacade implements UserFacadeInterface
 
     /**
      * @throws RandomException
+     * @throws UserNotFoundException
+     * @throws InternalServerErrorException
      */
     public function getUser(RequestBundle $request): User|ResponseBundle
     {
         $guid = GuidHelper::createLocalSessionId();
-        try {
-            $requiredFields = ['id'];
-            $validationResponse = $this->validateRequiredFields($request, $requiredFields);
-            if ($validationResponse instanceof ResponseBundle) {
-                return $validationResponse;
-            }
 
+        $requiredFields = ['id'];
+        $validationResponse = $this->validateRequiredFields($request, $requiredFields);
+        if ($validationResponse instanceof ResponseBundle) {
+            return $validationResponse;
+        }
+
+        try {
             $userId = (int) $request->getBody()['id'];
             return $this->userService->getUserById($userId);
         } catch (UserNotFoundException $e) {
-            $this->logError($guid, (string)json_encode($e->getMessage()), [
-                'tags' => ['user', 'getUser', 'response'],  // можна передавати тільки специфічні параметри
+            $this->logError($guid, $e->getMessage(), [
+                'tags' => ['user', 'getUser', 'response'],
                 'result' => ResultCodes::ERROR_NOT_FOUND,
             ]);
-            return new ResponseBundle(404, ['error' => $e->getMessage()], ResultCodes::ERROR_NOT_FOUND);
+            throw $e;
         } catch (Exception $e) {
-
-            $this->logError($guid, (string)json_encode($e->getMessage()), [
-                'tags' => ['user', 'getUser', 'response'],  // можна передавати тільки специфічні параметри
+            $this->logError($guid, $e->getMessage(), [
+                'tags' => ['user', 'getUser', 'response'],
                 'result' => ResultCodes::ERROR_INTERNAL_SERVER,
             ]);
-            return new ResponseBundle(500, ['error' => $e->getMessage()], ResultCodes::ERROR_INTERNAL_SERVER);
+            throw new InternalServerErrorException('An unexpected error occurred in facade.', 500, $e);
         }
     }
 

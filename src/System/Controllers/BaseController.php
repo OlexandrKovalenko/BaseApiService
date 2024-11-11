@@ -15,12 +15,26 @@ use App\System\Util\Log;
 use Exception;
 use Random\RandomException;
 
+/**
+ * Class BaseController
+ *
+ * @package App\System\Controllers
+ * @author maslo
+ * @since 08.11.2024
+ */
 abstract class BaseController
 {
     use LoggableTrait;
-    protected string $globalSessionId;
-    protected Container $container;
 
+    /**
+     * @var string $globalSessionId
+     */
+    protected string $globalSessionId;
+
+    /**
+     * @var Container $container
+     */
+    protected Container $container;
 
     /**
      * @throws RandomException
@@ -33,9 +47,12 @@ abstract class BaseController
         Log::init('Controller');
     }
 
+    /**
+     *
+     */
     public function __destruct()
     {
-        GuidHelper::resetGlobalSessionId();
+        //GuidHelper::resetGlobalSessionId();
     }
 
     /**
@@ -56,7 +73,14 @@ abstract class BaseController
         return $this->container->make($class);
     }
 
-    protected function jsonResponse($data, $status = 200): void
+    /**
+     * jsonResponse
+     *
+     * @param $data
+     * @param int $status
+     * @return void
+     */
+    protected function jsonResponse($data, int $status = 200): void
     {
 
         http_response_code($status);
@@ -64,11 +88,22 @@ abstract class BaseController
         echo json_encode($data);
     }
 
-    protected function getInputData()
+    /**
+     * getInputData
+     *
+     * @return mixed
+     */
+    protected function getInputData(): mixed
     {
         return json_decode(file_get_contents('php://input'), true);
     }
 
+    /**
+     * handleException
+     *
+     * @param Exception $e
+     * @return ResponseBundle
+     */
     protected function handleException(Exception $e): ResponseBundle
     {
         if ($e instanceof UserNotFoundException) {

@@ -3,6 +3,8 @@
 namespace App\System\Services\User;
 
 use App\System\Entity\User;
+use App\System\Exception\InternalServerErrorException;
+use App\System\Exception\UserNotFoundException;
 use App\System\Repositories\User\UserRepository;
 use App\System\Repositories\User\UserRepositoryInterface;
 use App\System\Services\BaseService;
@@ -22,14 +24,16 @@ class UserService extends BaseService implements UserServiceInterface
     /**
      * @throws Exception
      */
-    public function getUserById(int $userId): ?User
+    public function getUserById(int $userId): User
     {
-        $user = $this->userRepository->findById($userId);
-
-        if (!$user) {
-            throw new Exception("User with ID {$userId} not found.");
+        try {
+            $user = $this->userRepository->findById($userId);
+            return $user;
+        } catch (UserNotFoundException $e) {
+            throw $e;
+        } catch (Exception $e) {
+            throw new InternalServerErrorException("An error occurred while fetching the user.", 500, $e);
         }
-        return $user;
     }
 
     /**
@@ -55,8 +59,9 @@ class UserService extends BaseService implements UserServiceInterface
         $user = $this->userRepository->findByPhone($userPhone);
 
         if (!$user) {
-            throw new Exception("User with phone number {$userPhone} not found.");
+            return null;
         }
+
         return $user;
     }
 }

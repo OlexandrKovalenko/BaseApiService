@@ -27,7 +27,6 @@ class User extends BaseEntity implements JsonSerializable
         parent::__construct($attributes);
 
         if (!empty($attributes)) {
-            //$this->id = $attributes['id'] ?? $this->id;
             $this->first_name = $attributes['first_name'] ?? $this->first_name;
             $this->last_name = $attributes['last_name'] ?? $this->last_name;
             $this->phone = $attributes['phone'] ?? $this->phone;
