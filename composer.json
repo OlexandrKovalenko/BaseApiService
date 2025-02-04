@@ -5,7 +5,7 @@
   "require": {
     "php": "^8.0",
     "guzzlehttp/guzzle": "^7.0",
-    "monolog/monolog": "^3",
+    "monolog/monolog": "^2",
     "vlucas/phpdotenv": "^5.0",
     "phpunit/phpunit": "^9.5",
     "firebase/php-jwt": "^6.0",
