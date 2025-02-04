@@ -9,3 +9,5 @@
 /dev/
 phinx.php
 dir
+.htaccess
+/public/.htaccess
