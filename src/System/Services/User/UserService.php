@@ -4,6 +4,7 @@ namespace App\System\Services\User;
 
 use App\System\Entity\User;
 use App\System\Exception\InternalServerErrorException;
+use App\System\Exception\UserException;
 use App\System\Exception\UserNotFoundException;
 use App\System\Repositories\User\UserRepository;
 use App\System\Repositories\User\UserRepositoryInterface;
@@ -22,18 +23,16 @@ class UserService extends BaseService implements UserServiceInterface
     }
 
     /**
-     * @throws Exception
+     * getUserById
+     *
+     * @param int $userId
+     * @return User
+     * @throws RandomException
+     * @throws UserException
      */
     public function getUserById(int $userId): User
     {
-        try {
-            $user = $this->userRepository->findById($userId);
-            return $user;
-        } catch (UserNotFoundException $e) {
-            throw $e;
-        } catch (Exception $e) {
-            throw new InternalServerErrorException("An error occurred while fetching the user.", 500, $e);
-        }
+        return $this->userRepository->findById($userId);
     }
 
     /**
@@ -43,25 +42,22 @@ class UserService extends BaseService implements UserServiceInterface
     {
         try {
             $user->beforeSave();
-            $userId = $this->userRepository->store($user);
-            return $userId;
+            return $this->userRepository->store($user);
         } catch (Exception $e) {
             throw new Exception("Failed to create user: " . $e->getMessage());
         }
     }
 
     /**
+     * getUserByPhone
+     *
+     * @param string $userPhone
+     * @return User
      * @throws RandomException
-     * @throws Exception
+     * @throws UserException
      */
-    public function getUserByPhone(int $userPhone): ?User
+    public function getUserByPhone(string $userPhone): User
     {
-        $user = $this->userRepository->findByPhone($userPhone);
-
-        if (!$user) {
-            return null;
-        }
-
-        return $user;
+        return $this->userRepository->findByPhone($userPhone);
     }
 }

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\System\Controllers;
 
+use App\System\Entity\User;
 use App\System\Facades\User\UserFacade;
 use App\System\Facades\User\UserFacadeInterface;
 use App\System\Http\RequestBundle;
@@ -38,6 +39,10 @@ class UserController extends BaseController
     }
 
     /**
+     * getUser
+     *
+     * @param RequestBundle $request
+     * @return ResponseBundle
      * @throws RandomException
      */
     public function getUser(RequestBundle $request): ResponseBundle
@@ -48,22 +53,24 @@ class UserController extends BaseController
             'tags' => ['user', 'request'],
         ]);
 
-        try {
-            $user = $this->userFacade->getUser($request);
+            $result = $this->userFacade->getUser($request);
 
-            // Логування, якщо користувача знайдено
-            $this->logInfo($guid, (string)json_encode($user->jsonSerialize()), [
-                'tags' => ['user', 'response'],
-                'user_id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'phone' => $user->getPhone(),
-            ]);
+            if ($result instanceof ResponseBundle)
+            {
+                $this->logError($guid, (string)json_encode($result), [
+                    'tags' => ['user', 'response'],
+                ]);
+                return $result;
+            } else {
+                $this->logInfo($guid, (string)json_encode($result->jsonSerialize()), [
+                    'tags' => ['user', 'response'],
+                    'user_id' => $result->getId(),
+                    'email' => $result->getEmail(),
+                    'phone' => $result->getPhone(),
+                ]);
 
-            return new ResponseBundle(200, $user->jsonSerialize());
-
-        } catch (Exception $e) {
-            return $this->handleException($e);
-        }
+                return new ResponseBundle(200, $result->jsonSerialize());
+            }
     }
 
     /**

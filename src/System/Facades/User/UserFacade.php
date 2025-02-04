@@ -4,6 +4,7 @@ namespace App\System\Facades\User;
 use App\System\Core\ResultCodes;
 use App\System\Entity\User;
 use App\System\Exception\InternalServerErrorException;
+use App\System\Exception\UserException;
 use App\System\Exception\UserNotFoundException;
 use App\System\Facades\BaseFacade;
 use App\System\Http\RequestBundle;
@@ -76,9 +77,11 @@ class UserFacade extends BaseFacade implements UserFacadeInterface
     }
 
     /**
+     * getUser
+     *
+     * @param RequestBundle $request
+     * @return User|ResponseBundle
      * @throws RandomException
-     * @throws UserNotFoundException
-     * @throws InternalServerErrorException
      */
     public function getUser(RequestBundle $request): User|ResponseBundle
     {
@@ -86,25 +89,24 @@ class UserFacade extends BaseFacade implements UserFacadeInterface
 
         $requiredFields = ['id'];
         $validationResponse = $this->validateRequiredFields($request, $requiredFields);
+
         if ($validationResponse instanceof ResponseBundle) {
+            $this->logError($guid, (string)json_encode($validationResponse->getBody()), [
+                'tags' => ['user', 'validation'],
+                'result' => ResultCodes::ERROR_BAD_REQUEST,
+            ]);
             return $validationResponse;
         }
 
         try {
             $userId = (int) $request->getBody()['id'];
             return $this->userService->getUserById($userId);
-        } catch (UserNotFoundException $e) {
-            $this->logError($guid, $e->getMessage(), [
-                'tags' => ['user', 'getUser', 'response'],
-                'result' => ResultCodes::ERROR_NOT_FOUND,
+        } catch (UserException $e) {
+            $this->logError($guid, json_encode($e->getMessage()), [
+                'tags' => ['user', 'getUser', 'facade'],
+                'result' => $e->getCode(),
             ]);
-            throw $e;
-        } catch (Exception $e) {
-            $this->logError($guid, $e->getMessage(), [
-                'tags' => ['user', 'getUser', 'response'],
-                'result' => ResultCodes::ERROR_INTERNAL_SERVER,
-            ]);
-            throw new InternalServerErrorException('An unexpected error occurred in facade.', 500, $e);
+            return new ResponseBundle($e->getCode(), ['error' => $e->getMessage()], $e->getCode());
         }
     }
 
@@ -118,25 +120,23 @@ class UserFacade extends BaseFacade implements UserFacadeInterface
         try {
             $requiredFields = ['phone'];
             $validationResponse = $this->validateRequiredFields($request, $requiredFields);
+
             if ($validationResponse instanceof ResponseBundle) {
+                $this->logError($guid, (string)json_encode($validationResponse->getBody()), [
+                    'tags' => ['user', 'validation'],
+                    'result' => ResultCodes::ERROR_BAD_REQUEST,
+                ]);
                 return $validationResponse;
             }
 
-            $userId = (int) $request->getBody()['phone'];
-            return $this->userService->getUserByPhone($userId);
-        } catch (UserNotFoundException $e) {
-            $this->logError($guid, (string)json_encode($e->getMessage()), [
-                'tags' => ['user', 'getUser', 'response'],  // можна передавати тільки специфічні параметри
-                'result' => ResultCodes::ERROR_NOT_FOUND,
+            $userPhone = (string) $request->getBody()['phone'];
+            return $this->userService->getUserByPhone($userPhone);
+        } catch (UserException $e) {
+            $this->logError($guid, json_encode($e->getMessage()), [
+                'tags' => ['user', 'getUser', 'facade'],
+                'result' => $e->getCode(),
             ]);
-            return new ResponseBundle(404, ['error' => $e->getMessage()], ResultCodes::ERROR_NOT_FOUND);
-        } catch (Exception $e) {
-
-            $this->logError($guid, (string)json_encode($e->getMessage()), [
-                'tags' => ['user', 'getUser', 'response'],  // можна передавати тільки специфічні параметри
-                'result' => ResultCodes::ERROR_INTERNAL_SERVER,
-            ]);
-            return new ResponseBundle(500, ['error' => $e->getMessage()], ResultCodes::ERROR_INTERNAL_SERVER);
+            return new ResponseBundle($e->getCode(), ['error' => $e->getMessage()], $e->getCode());
         }
     }
 }

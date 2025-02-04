@@ -43,6 +43,7 @@ class Router
      */
     public function addRoute(string $method, string $uri, $action): void
     {
+
         $uri = trim($uri, '/');
         $this->routes[strtoupper($method)][] = [
             'pattern' => $this->convertUriToPattern($uri),
@@ -174,6 +175,7 @@ class Router
             $this->respondNotFound();
             return;
         }
+
         foreach ($this->routes[$method] as $route) {
             if (preg_match($route['pattern'], $uri, $matches)) {
                 array_shift($matches);

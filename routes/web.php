@@ -22,7 +22,7 @@ $router->post('/register', [LoggingMiddleware::class, [UserController::class, 'c
 //$router->get('/userr', [LoggingMiddleware::class, [UserController::class, 'getUser']]);
 
 $router->group('/api', function ($router) {
-    $router->get('/user', [LoggingMiddleware::class, AuthMiddleware::class, [UserController::class, 'getUser']]);
+    $router->post('/user', [LoggingMiddleware::class, AuthMiddleware::class, [UserController::class, 'getUser']]);
 
 });
 

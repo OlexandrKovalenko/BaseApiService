@@ -3,6 +3,7 @@
 namespace App\System\Repositories\User;
 
 use App\System\Entity\User;
+use App\System\Exception\UserException;
 use App\System\Exception\UserNotFoundException;
 use App\System\Repositories\BaseRepository;
 use App\System\Util\GuidHelper;
@@ -82,36 +83,47 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         throw new Exception("Failed to update user.");
     }
 
-    // Метод для отримання користувача за ID
-
     /**
-     * @throws Exception
+     * findById
+     *
+     * @param int $id
+     * @return User
+     * @throws RandomException
+     * @throws UserException
      */
-    public function findById(int $id): ?User
+    public function findById(int $id): User
     {
         $guid = GuidHelper::createLocalSessionId();
         $query = 'SELECT * FROM users WHERE id = :id';
 
         $this->logInfo($guid, (string)json_encode($query), [
             'tags' => ['user', 'findById', 'query'],
+            'user_id' => $id,
         ]);
 
         $stmt = $this->db->prepare($query);
         $stmt->execute([':id' => $id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user) {
-            return new User($user);
+        if (!$user) {
+            $this->logError($guid, "User with id $id not found.", [
+                'tags' => ['user', 'findByPhone', 'not_found'],
+            ]);
+            throw UserException::userNotFound();
         }
-
-        throw new UserNotFoundException("No user found with ID {$id}.");
+        return new User($user);
     }
 
     /**
+     * findByPhone
+     *
+     * @param string $userPhone
+     * @return User
      * @throws RandomException
+     * @throws UserException
      * @throws Exception
      */
-    public function findByPhone(string $userPhone): ?User
+    public function findByPhone(string $userPhone): User
     {
         $guid = GuidHelper::createLocalSessionId();
 
@@ -119,17 +131,19 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
 
         $this->logInfo($guid, (string)json_encode($query), [
             'tags' => ['user', 'findByPhone', 'query'],
+            'user_id' => $userPhone,
         ]);
 
         $stmt = $this->db->prepare($query);
         $stmt->execute([':phone' => $userPhone]);
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
         if (!$user) {
-            $this->logWarning($guid, "User with phone $userPhone not found.", [
+            $this->logError($guid, "User with phone $userPhone not found.", [
                 'tags' => ['user', 'findByPhone', 'not_found'],
             ]);
-            return null;
+            throw UserException::userNotFound();
         }
         return new User($user);
     }

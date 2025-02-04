@@ -54,9 +54,9 @@ class LoggingMiddleware  implements MiddlewareInterface
     {
         $guid = GuidHelper::createLocalSessionId();
 
-        $this->logInfo($guid, 'Response: ' . json_encode($response->getData()), [
+        $this->logInfo($guid, 'Response: ' . json_encode($response->getBody()), [
             'tags' => ['middleware', 'response'],
-            'data' => $response->getData()
+            'data' => $response->getBody()
         ]);
 
         GuidHelper::resetGlobalSessionId();

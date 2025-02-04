@@ -34,7 +34,7 @@ class ResponseBundle
         return $this;
     }
 
-    public function getData(): array
+    public function getBody(): array
     {
         return [
             'Result' => $this->resultCode,
